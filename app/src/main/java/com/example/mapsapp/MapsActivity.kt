@@ -30,6 +30,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
@@ -46,11 +47,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var lastLocation: Location
     private lateinit var fusedLocationClient: FusedLocationProviderClient
 
+
     private lateinit var database: Database
     lateinit var launcher: ActivityResultLauncher<Intent>
     private lateinit var name: String
     private lateinit var header: View
     private lateinit var buttonlayout: RelativeLayout
+
+    private lateinit var navView: NavigationView
 
 
     @SuppressLint("ResourceType")
@@ -58,8 +62,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        header = findViewById<NavigationView>(R.id.nav_view).getHeaderView(0)
         buttonlayout = findViewById(R.id.buttonLayout)
+        navView = findViewById(R.id.nav_view)
+        header = navView.getHeaderView(0)
         buttonlayout.visibility = View.GONE
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -95,9 +100,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isZoomControlsEnabled = true
         setUpMap()
         mMap.setOnMapClickListener {
-            if (buttonlayout.visibility == View.VISIBLE){
-
-            }
+            changeNavigationView()
+        }
+        mMap.setOnMarkerClickListener {
+            Log.d("tag", it.title.toString())
+            navView.menu.clear()
+            navView.inflateMenu(R.menu.nav_party_menu)
+            findViewById<DrawerLayout>(R.id.DrawerLayout).openDrawer(GravityCompat.START)
+            return@setOnMarkerClickListener true
         }
     }
 
@@ -120,6 +130,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home){
+            changeNavigationView()
             val drawer = findViewById<DrawerLayout>(R.id.DrawerLayout)
             if (drawer.isDrawerOpen(GravityCompat.START)){
                 drawer.closeDrawer(GravityCompat.START)
@@ -131,11 +142,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         return true
     }
 
+    private fun changeNavigationView(){
+        navView.menu.clear()
+        navView.inflateMenu(R.menu.nav_menu)
+    }
 
     private fun getPhoto(){
         database.usersImage.child(database.auth.uid!!).downloadUrl.addOnCompleteListener {
-            header.findViewById<ImageView>(R.id.personImage).setImageURI(it.result)
-            Picasso.with(this).load(it.result).into(header.findViewById<ImageView>(R.id.personImage))
+            if (it.isSuccessful){
+                header.findViewById<ImageView>(R.id.personImage).setImageURI(it.result)
+                Picasso.with(this).load(it.result).into(header.findViewById<ImageView>(R.id.personImage))
+            }
         }
     }
     private fun setName(){
@@ -186,20 +203,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
     fun makeParty(item: MenuItem? = null){
-//        var markerOptions = MarkerOptions().position(LatLng(lastLocation.latitude, lastLocation.longitude))
-//        markerOptions.draggable(true)
-//        val marker = mMap.addMarker(markerOptions)
+        var markerOptions = MarkerOptions().position(LatLng(lastLocation.latitude, lastLocation.longitude))
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+        val marker = mMap.addMarker(markerOptions)
         buttonlayout.visibility = View.VISIBLE
-
-//        findViewById<Button>(R.id.buttonOK).setOnClickListener {
-//            if (marker != null) {
-//                Log.d("test2", marker.position.toString())
-//                markerOptions = MarkerOptions().position(marker.position)
-//                markerOptions.draggable(false)
-//                marker.remove()
-//            }
-//            mMap.addMarker(markerOptions)
-//            buttonlayout.visibility = View.GONE
-//        }
+        findViewById<Button>(R.id.buttonOK).setOnClickListener {
+            val text = findViewById<EditText>(R.id.EditPartyName).text.toString()
+            if (text.isNotEmpty()){
+                marker?.remove()
+                markerOptions.title(text)
+                mMap.addMarker(markerOptions)
+                buttonlayout.visibility = View.GONE
+            }
+            else{
+                Toast.makeText(this, "Fill in name of party", Toast.LENGTH_SHORT).show()
+            }
+        }
+        findViewById<Button>(R.id.buttonCancel).setOnClickListener {
+            marker?.remove()
+            buttonlayout.visibility = View.GONE
+        }
     }
 }

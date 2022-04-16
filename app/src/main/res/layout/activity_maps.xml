@@ -21,24 +21,38 @@
         <RelativeLayout
             android:id="@+id/buttonLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="125dp"
             android:layout_alignWithParentIfMissing="false"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="19dp"
             android:gravity="center"
-            tools:visibility="gone">
+            tools:visibility="visible">
 
             <Button
                 android:id="@+id/buttonOK"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/buttonCancel"
                 android:layout_marginStart="150dp"
+                android:layout_marginBottom="-2dp"
                 android:text="Ok" />
+
+            <EditText
+                android:id="@+id/EditPartyName"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#000000"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="Party Name"
+                android:textColor="#000000" />
 
             <Button
                 android:id="@+id/buttonCancel"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="9dp"
                 android:text="Cancel" />
 
         </RelativeLayout>
