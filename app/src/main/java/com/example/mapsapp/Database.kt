@@ -10,4 +10,6 @@ class Database(auth: FirebaseAuth) {
     val users = database.getReference("users")
     val storage = FirebaseStorage.getInstance("gs://mapsapp-346920.appspot.com")
     val usersImage = storage.getReference("users")
+    val parties = database.getReference("parties")
+
 }

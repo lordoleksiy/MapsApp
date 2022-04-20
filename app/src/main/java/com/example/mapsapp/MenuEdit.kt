@@ -30,7 +30,7 @@ class MenuEdit : AppCompatActivity() {
         database = Database(Firebase.auth)
         database.users.child(database.auth.uid!!).get().addOnSuccessListener {
             if (it != null){
-                findViewById<EditText>(R.id.editTextTextPersonName).setText(it.value.toString())
+                findViewById<EditText>(R.id.editTextTextPersonName).setText(it.child("name").value.toString())
             }
         }
             launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -55,22 +55,23 @@ class MenuEdit : AppCompatActivity() {
     }
 
     fun save(view: View){
+        val text = findViewById<EditText>(R.id.editTextTextPersonName).text.toString()
+        if (text.isNotEmpty()){
+            database.users.child(database.auth.uid!!).child("name").setValue(text)
+        }
         if (this::uri.isInitialized){
             val bitmap = findViewById<ImageView>(R.id.imageView).drawable.toBitmap()
             val baos = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos)
             val byteArray = baos.toByteArray()
-            val text = findViewById<EditText>(R.id.editTextTextPersonName).text.toString()
             database.usersImage.child(database.auth.uid!!).putBytes(byteArray).addOnCompleteListener {
-                if (it.isSuccessful){
-                    Toast.makeText(this, "Photo successfully downloaded!", Toast.LENGTH_SHORT).show()
+                if (it.isSuccessful) {
+                    Toast.makeText(this, "Photo successfully downloaded!", Toast.LENGTH_SHORT)
+                        .show()
+                    startActivity(Intent(this, MapsActivity::class.java).putExtra("uri", uri.toString()))
                 }
             }
-            if (text.isNotEmpty()){
-                database.users.child(database.auth.uid!!).setValue(text)
-            }
-            startActivity(Intent(this, MapsActivity::class.java).putExtra("uri", uri.toString()))
         }
-
+        else startActivity(Intent(this, MapsActivity::class.java))
     }
 }

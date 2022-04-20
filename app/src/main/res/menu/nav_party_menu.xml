@@ -7,6 +7,9 @@
             <item
                 android:id="@+id/cum_in"
                 android:title="Cum in" />
+            <item
+                android:id="@+id/find_way"
+                android:title="Find way" />
         </menu>
     </item>
     <item
