@@ -9,11 +9,12 @@
         android:id="@+id/editTextTextPersonName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="5dp"
+        android:layout_marginHorizontal="48dp"
         android:layout_marginTop="24dp"
         android:ems="10"
+        android:hint="Name and Surname"
         android:inputType="textPersonName"
-        android:text="Name and Surname"
+        android:minHeight="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,18 +22,18 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
+        android:layout_width="275dp"
+        android:layout_height="275dp"
+        android:layout_marginTop="228dp"
         android:src="@drawable/noimage_black"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTextPersonName"
-        android:layout_marginTop="30dp"/>
+        app:layout_constraintTop_toBottomOf="@+id/editTextTextPersonName" />
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
+        android:id="@+id/loadImage"
+        android:layout_width="175dp"
+        android:layout_height="45dp"
         android:layout_marginTop="16dp"
         android:background="@drawable/frame_box"
         android:backgroundTint="#594949"
@@ -64,4 +65,24 @@
         android:text="Back"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/editTextTextMultiLine"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="48dp"
+        android:layout_marginRight="48dp"
+        android:ems="10"
+        android:gravity="start|top"
+        android:hint="Your description about yourself"
+        android:inputType="textMultiLine"
+        android:lines="4"
+        android:maxLines="4"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/imageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextTextPersonName"
+        tools:ignore="RtlCompat" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,27 +4,26 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.icu.text.CaseMap
 import android.location.Location
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import com.example.mapsapp.controllers.Database
+import com.example.mapsapp.controllers.MapsEdit
+import com.example.mapsapp.controllers.onBottomNavClick
+import com.example.mapsapp.data.Party
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.example.mapsapp.databinding.ActivityMapsBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -33,12 +32,10 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.Marker
-import com.google.android.material.navigation.NavigationView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.squareup.picasso.Picasso
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -55,10 +52,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var database: Database
     lateinit var launcher: ActivityResultLauncher<Intent>
     private lateinit var name: String
-    private lateinit var header: View
     private lateinit var buttonlayout: RelativeLayout
-
-    private lateinit var navView: NavigationView
 
 
     @SuppressLint("ResourceType")
@@ -67,8 +61,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         buttonlayout = findViewById(R.id.buttonLayout)
-        navView = findViewById(R.id.nav_view)
-        header = navView.getHeaderView(0)
         buttonlayout.visibility = View.GONE
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -76,26 +68,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        database = Database(Firebase.auth)
+        database = Database()
         launch()
-        val photo = intent.getStringExtra("uri")
-        // подгрузим фото и имя юзера:
+
         if (database.auth.currentUser == null){
             signIn()
         }
-        else{
-            if (photo != null){
-                header.findViewById<ImageView>(R.id.personImage).setImageURI(Uri.parse(photo))
-            }
-            else{
-                getPhoto()
-            }
-            setName()
-            showParties()
-        }
-        header.findViewById<ImageButton>(R.id.imageButton).setOnClickListener{
-            startActivity(Intent(this, MenuEdit::class.java)) }
+        onBottomNavClick(findViewById(R.id.bottomNav), this, "Map")
+        findViewById<BottomNavigationView>(R.id.bottomNav).selectedItemId = R.id.mapButton
+        database.getPhoto()
+        database.getDescription()
+        database.getName()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.upper_menu, menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
     // при загрузке карты считуем нажатия
@@ -104,21 +92,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapsEdit = MapsEdit(googleMap)
         mMap.uiSettings.isZoomControlsEnabled = true
         setUpMap()
-        mMap.setOnMapClickListener {
-            changeNavigationView()
-        }
+        showParties()
         mMap.setOnMarkerClickListener {
-            onMarkerCkick()
+            startActivity(Intent(this, PartyActivity::class.java).putExtra("id", it.snippet))
             return@setOnMarkerClickListener true
         }
     }
-    private fun onMarkerCkick(){
-        navView.menu.clear()
-        navView.inflateMenu(R.menu.nav_party_menu)
-        findViewById<DrawerLayout>(R.id.DrawerLayout).openDrawer(GravityCompat.START)
-    }
 
-    // анстройка доступа + последняя локация
+    // нaстройка доступа + последняя локация
     private fun setUpMap(){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED) {
@@ -133,43 +114,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 val currentLatLong = LatLng(location.latitude, location.longitude)
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(currentLatLong))
             }
-        }
-    }
-
-    // открыть закрыть навигатион вью
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home){
-            changeNavigationView()
-            val drawer = findViewById<DrawerLayout>(R.id.DrawerLayout)
-            if (drawer.isDrawerOpen(GravityCompat.START)){
-                drawer.closeDrawer(GravityCompat.START)
-            }
-            else{
-                drawer.openDrawer(GravityCompat.START)
-            }
-        }
-        return true
-    }
-
-    // просто меняем навигейшн вью на стандартный
-    private fun changeNavigationView(){
-        navView.menu.clear()
-        navView.inflateMenu(R.menu.nav_menu)
-    }
-
-    // получить фото из базы
-    private fun getPhoto(){
-        database.usersImage.child(database.auth.uid!!).downloadUrl.addOnCompleteListener {
-            if (it.isSuccessful){
-                header.findViewById<ImageView>(R.id.personImage).setImageURI(it.result)
-                Picasso.with(this).load(it.result).into(header.findViewById<ImageView>(R.id.personImage))
-            }
-        }
-    }
-    // установить имя пользователя
-    private fun setName(){
-        database.users.child(database.auth.uid!!).get().addOnSuccessListener {
-            findViewById<TextView>(R.id.textName).text = it.child("name").value.toString()
         }
     }
 
@@ -193,7 +137,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         database.auth.signInWithCredential(credential).addOnSuccessListener {
             database.users.child(database.auth.uid!!).child("name").setValue(name)
-            setName()
+//            setName()
             showParties()
         }
     }
@@ -233,7 +177,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     val listOfPeople = ArrayList<String>()
                     listOfPeople.add(database.auth.uid!!)
                     val key =  database.parties.push().key
-                    database.parties.child(key!!).setValue(Party(text, lastPos, listOfPeople, "time", database.auth.uid!!))
+                    val pos = "${lastPos.latitude} ${lastPos.longitude}"
+                    database.parties.child(key!!).setValue(Party(text, pos, listOfPeople, "time", database.auth.uid!!))
                     database.users.child(database.auth.uid!!).child("party").setValue(key)
                     mapsEdit.makeMarker(lastPos, text, key, BitmapDescriptorFactory.HUE_BLUE)
                     buttonlayout.visibility = View.GONE
@@ -253,9 +198,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun showParties(){
         database.parties.get().addOnCompleteListener {
             it.result.children.forEach { party ->
-                val latitude = party.child("latLng").child("latitude").value.toString().toDouble()
-                val longitude = party.child("latLng").child("longitude").value.toString().toDouble()
-                val latLng = LatLng(latitude, longitude)
+                val latLngStr = party.child("latLng").value.toString().split(" ")
+                val latLng = LatLng(latLngStr[0].toDouble(), latLngStr[1].toDouble())
                 if (party.child("organizer").value == database.auth.uid){
                     mapsEdit.makeMarker(latLng, party.child("name").value as String, party.key.toString(), BitmapDescriptorFactory.HUE_BLUE)
                 }

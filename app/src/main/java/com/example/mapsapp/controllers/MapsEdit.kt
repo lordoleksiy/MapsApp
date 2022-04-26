@@ -1,4 +1,4 @@
-package com.example.mapsapp
+package com.example.mapsapp.controllers
 
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
