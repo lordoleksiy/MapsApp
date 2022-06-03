@@ -5,4 +5,27 @@
         android:onClick="addPhoto"
         android:orderInCategory="1"
         android:title="add photo" />
+    <item
+        android:id="@+id/takePart"
+        android:onClick="takePart"
+        android:orderInCategory="2"
+        android:title="take part" />
+
+    <item
+        android:id="@+id/showOnMap"
+        android:onClick="showOnMap"
+        android:orderInCategory="3"
+        android:title="show on map" />
+
+    <item
+        android:id="@+id/finishParty"
+        android:onClick="finishParty"
+        android:orderInCategory="3"
+        android:title="finish party" />
+
+    <item
+        android:id="@+id/leaveParty"
+        android:onClick="leaveParty"
+        android:orderInCategory="3"
+        android:title="leave party" />
 </menu>

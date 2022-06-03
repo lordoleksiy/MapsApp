@@ -13,6 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light">
         <activity
+            android:name=".PhotoActivity"
+            android:exported="false" />
+        <activity
             android:name=".PartyActivity"
             android:exported="false" />
         <activity

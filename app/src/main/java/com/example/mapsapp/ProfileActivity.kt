@@ -7,13 +7,12 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.Glide
 import com.example.mapsapp.controllers.Database
 import com.example.mapsapp.controllers.onBottomNavClick
 import com.example.mapsapp.data.UserData
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
-import com.squareup.picasso.Picasso
+
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var database: Database
@@ -29,7 +28,7 @@ class ProfileActivity : AppCompatActivity() {
         if (UserData.isPhoto()){
             findViewById<ImageView>(R.id.personImage).setImageURI(UserData.photo)
             if (UserData.fromDatabase)
-                Picasso.with(this).load(UserData.photo).into(findViewById<ImageView>(R.id.personImage))
+                Glide.with(this).load(UserData.photo).into(findViewById(R.id.personImage))
         }
         findViewById<TextView>(R.id.personName).text = UserData.username
         findViewById<TextView>(R.id.personDescription).text = UserData.description

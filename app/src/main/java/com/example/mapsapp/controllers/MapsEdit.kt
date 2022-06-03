@@ -20,3 +20,14 @@ class MapsEdit(private val map: GoogleMap) {
         return map.addMarker(markerOptions)!!
     }
 }
+
+fun parseLatLng(latLngStr: String): LatLng {
+    val pos = latLngStr.split(" ")
+    return LatLng(pos[0].toDouble(), pos[1].toDouble())
+}
+
+fun getLength(point1: LatLng, point2: LatLng): Double{
+    val x = (point2.longitude - point1.longitude) * Math.cos(0.5 * (point1.latitude + point2.latitude))
+    val y = point2.latitude - point1.latitude
+    return 6371 * Math.sqrt(x * x + y * y)
+}

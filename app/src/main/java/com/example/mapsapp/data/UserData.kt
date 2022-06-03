@@ -7,6 +7,7 @@ object UserData {
     var description = ""
     var photo: Uri? = null
     var fromDatabase: Boolean = false
+    var party: String = ""
 
     fun isName(): Boolean{
         return username.isNotEmpty()
@@ -17,5 +18,8 @@ object UserData {
     }
     fun isDescription(): Boolean{
         return description.isNotEmpty()
+    }
+    fun isParty():Boolean{
+        return party.isNotEmpty()
     }
 }

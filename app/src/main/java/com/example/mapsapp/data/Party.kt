@@ -5,5 +5,9 @@ data class Party(
     val latLng: String? = null,
     val listOfPeople: ArrayList<String>? = null,
     val time: String? = null,
-    val organizer:String? = null
-)
+    var organizer:String? = null
+){
+    fun containsUser(userID: String): Boolean{
+        return listOfPeople!!.contains(userID)
+    }
+}

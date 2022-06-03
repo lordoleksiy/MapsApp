@@ -7,9 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.result.ActivityResultLauncher
@@ -18,7 +16,8 @@ import androidx.core.app.ActivityCompat
 import com.example.mapsapp.controllers.Database
 import com.example.mapsapp.controllers.MapsEdit
 import com.example.mapsapp.controllers.onBottomNavClick
-import com.example.mapsapp.data.Party
+import com.example.mapsapp.controllers.parseLatLng
+import com.example.mapsapp.data.UserData
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -32,10 +31,9 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -53,6 +51,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     lateinit var launcher: ActivityResultLauncher<Intent>
     private lateinit var name: String
     private lateinit var buttonlayout: RelativeLayout
+    private var temporaryMarker: Marker? = null
 
 
     @SuppressLint("ResourceType")
@@ -74,15 +73,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         if (database.auth.currentUser == null){
             signIn()
         }
-        onBottomNavClick(findViewById(R.id.bottomNav), this, "Map")
-        findViewById<BottomNavigationView>(R.id.bottomNav).selectedItemId = R.id.mapButton
-        database.getPhoto()
-        database.getDescription()
-        database.getName()
+        else{
+            onBottomNavClick(findViewById(R.id.bottomNav), this, "Map")
+            findViewById<BottomNavigationView>(R.id.bottomNav).selectedItemId = R.id.mapButton
+            database.getPhoto()
+            database.getDescription()
+            database.getName()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.upper_menu, menu)
+        menu!!.findItem(R.id.setFilter).setOnMenuItemClickListener {
+            database.showParties(mMap, mapsEdit, lastLocation, 50)
+
+            // прописать надо алерт дайлог для выбора расстояния
+            return@setOnMenuItemClickListener true
+        }
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -92,9 +99,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapsEdit = MapsEdit(googleMap)
         mMap.uiSettings.isZoomControlsEnabled = true
         setUpMap()
-        showParties()
+        if (database.auth.currentUser != null) {
+            database.showParties(mMap, mapsEdit)
+        }
+        mMap.setOnMapLongClickListener {
+            makeParty(it)
+        }
         mMap.setOnMarkerClickListener {
-            startActivity(Intent(this, PartyActivity::class.java).putExtra("id", it.snippet))
+            UserData.party = it.snippet!!
+            startActivity(Intent(this, PartyActivity::class.java))
             return@setOnMarkerClickListener true
         }
     }
@@ -113,6 +126,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 lastLocation = location
                 val currentLatLong = LatLng(location.latitude, location.longitude)
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(currentLatLong))
+            }
+
+            val partyLoc = intent.getStringExtra("location")
+            if (partyLoc != null){
+                val pos = parseLatLng(partyLoc)
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 13F))
             }
         }
     }
@@ -137,8 +156,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         database.auth.signInWithCredential(credential).addOnSuccessListener {
             database.users.child(database.auth.uid!!).child("name").setValue(name)
-//            setName()
-            showParties()
+            database.showParties(mMap, mapsEdit)
         }
     }
 
@@ -161,54 +179,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-
     // Функция для создания маркера и переноса в базу данных пати
+    fun makeParty(latLng: LatLng){
+        temporaryMarker?.remove()
+        temporaryMarker = mapsEdit.makeMarker(latLng, BitmapDescriptorFactory.HUE_ORANGE)
+        buttonlayout.visibility = View.VISIBLE
+        findViewById<Button>(R.id.buttonOK).setOnClickListener {
+            val text = findViewById<EditText>(R.id.EditPartyName).text.toString()
+            if (text.isNotEmpty()){
+                temporaryMarker?.remove()
 
-    fun makeParty(item: MenuItem? = null){
-        if (this::lastLocation.isInitialized){
-            val lastPos = LatLng(lastLocation.latitude, lastLocation.longitude)
-            val marker = mapsEdit.makeMarker(lastPos, BitmapDescriptorFactory.HUE_BLUE)
-            buttonlayout.visibility = View.VISIBLE
-            findViewById<Button>(R.id.buttonOK).setOnClickListener {
-                val text = findViewById<EditText>(R.id.EditPartyName).text.toString()
-                if (text.isNotEmpty()){
-                    marker.remove()
-
-                    val listOfPeople = ArrayList<String>()
-                    listOfPeople.add(database.auth.uid!!)
-                    val key =  database.parties.push().key
-                    val pos = "${lastPos.latitude} ${lastPos.longitude}"
-                    database.parties.child(key!!).setValue(Party(text, pos, listOfPeople, "time", database.auth.uid!!))
-                    database.users.child(database.auth.uid!!).child("party").setValue(key)
-                    mapsEdit.makeMarker(lastPos, text, key, BitmapDescriptorFactory.HUE_BLUE)
-                    buttonlayout.visibility = View.GONE
-                }
-                else{
-                    Toast.makeText(this, "Fill in name of party", Toast.LENGTH_SHORT).show()
-                }
-            }
-            findViewById<Button>(R.id.buttonCancel).setOnClickListener {
-                marker.remove()
+                val key = database.makeParty(latLng, text)
+                mapsEdit.makeMarker(latLng, text, key, BitmapDescriptorFactory.HUE_GREEN)
                 buttonlayout.visibility = View.GONE
+                database.showParties(mMap, mapsEdit)
+            }
+            else{
+                Toast.makeText(this, "Fill in name of party", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    // функция для отображения всех тусовок
-    private fun showParties(){
-        database.parties.get().addOnCompleteListener {
-            it.result.children.forEach { party ->
-                val latLngStr = party.child("latLng").value.toString().split(" ")
-                val latLng = LatLng(latLngStr[0].toDouble(), latLngStr[1].toDouble())
-                if (party.child("organizer").value == database.auth.uid){
-                    mapsEdit.makeMarker(latLng, party.child("name").value as String, party.key.toString(), BitmapDescriptorFactory.HUE_BLUE)
-                }
-                else{
-                    mapsEdit.makeMarker(latLng, party.child("name").value as String, party.key.toString(), BitmapDescriptorFactory.HUE_RED)
-                }
-            }
+        findViewById<Button>(R.id.buttonCancel).setOnClickListener {
+            temporaryMarker?.remove()
+            buttonlayout.visibility = View.GONE
         }
     }
-
-
 }

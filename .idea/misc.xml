@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/drawable/frame_box.xml" value="0.1225" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/drawable/ic_baseline_menu_24.xml" value="0.15" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/drawable/round_button.xml" value="0.15" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/drawable/test.xml" value="0.1225" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_edit_menu.xml" value="1.0" />
@@ -12,9 +13,17 @@
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_maps2.xml" value="0.1" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_menu_edit.xml" value="0.2" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_party.xml" value="0.2" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_photo.xml" value="0.20244565217391305" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/activity_profile.xml" value="0.184375" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/custom_toolbar.xml" value="0.536" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/fragment_item_list.xml" value="0.20244565217391305" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/fragment_photos.xml" value="0.152" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/fragment_user_inf.xml" value="0.264" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/fragment_users.xml" value="0.20244565217391305" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/fragment_users_list.xml" value="0.20244565217391305" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/header.xml" value="0.4" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/photo_item.xml" value="0.152" />
+        <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/layout/user_item.xml" value="0.264" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/menu/bottom_menu.xml" value="0.234375" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/menu/menu.xml" value="0.2324074074074074" />
         <entry key="..\:/Programming/Android/MapsApp/app/src/main/res/menu/nav_menu.xml" value="0.2" />
